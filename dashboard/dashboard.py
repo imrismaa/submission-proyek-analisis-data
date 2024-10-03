@@ -29,7 +29,7 @@ def create_by_CO(df, year):
     
     return avg_co_per_month
 
-air_quality = pd.read_csv("guanyuan_air_quality.csv")
+air_quality = pd.read_csv("dashboard/guanyuan_air_quality.csv")
 
 
 with st.sidebar:
