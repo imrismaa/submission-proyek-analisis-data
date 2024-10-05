@@ -29,18 +29,17 @@ def create_by_CO(df, year):
     
     return avg_co_per_month
 
-air_quality = pd.read_csv("dashboard/guanyuan_air_quality.csv")
+@st.cache_data
+def load_data():
+    return pd.read_csv("https://raw.githubusercontent.com/imrismaa/submission-proyek-analisis-data/refs/heads/master/dashboard/guanyuan_air_quality.csv")
 
+air_quality = load_data()
 
 with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/5024/5024480.png")
     st.title("Guanyuan Air Quality:cloud::sparkles:")
     years = air_quality['year'].unique()
     years.sort()
-    
-    selected_year = st.selectbox('Select Year', years)
-
-    monthly_so2_no2_co = create_by_SO2_NO2(air_quality, selected_year)
 
 avg_pm = air_quality.groupby('year')[['PM2.5', 'PM10']].mean().reset_index()
 
@@ -62,7 +61,10 @@ with col3:
 st.title("Average PM2.5 and PM10 per Year")
 st.line_chart(avg_pm.set_index('year'))
 
-st.title("Average SO2, NO2, and CO per Year")
+selected_year = st.selectbox('Select Year', years)
+monthly_so2_no2_co = create_by_SO2_NO2(air_quality, selected_year)
+
+st.title("Average SO2, NO2, and CO in " + str(selected_year))
 st.subheader("Polutant that makes the air quality bad")
 st.subheader("SO2 and NO2")
 
@@ -90,6 +92,46 @@ st.subheader("CO")
 monthly_co_avg = create_by_CO(air_quality, selected_year)
 st.line_chart(monthly_co_avg.set_index('month'))
 
+numeric_factor = ['SO2', 'NO2', 'CO', 'O3']
+meteorological_factor = ['RAIN', 'WSPM']
+
+st.header("The correlation between pollutants that affects air quality")
+for column in numeric_factor:
+    st.subheader(f"Correlation between {column} with PM2.5 and PM10")
+    with st.spinner("Loading Plots..."):
+        fig, ax = plt.subplots(1, 2, figsize=(14, 6))
+
+        sns.regplot(x=air_quality[column], y=air_quality['PM2.5'], scatter_kws={'alpha': 0.5}, line_kws={'color': 'magenta'}, ax=ax[0])
+        ax[0].set_title(f'Regression Plot {column} vs PM2.5')
+        ax[0].set_xlabel(f'{column}')
+        ax[0].set_ylabel('PM2.5 (µg/m³)')
+        ax[0].grid()
+        sns.regplot(x=air_quality[column], y=air_quality['PM10'], scatter_kws={'alpha': 0.5}, line_kws={'color': 'magenta'}, ax=ax[1])
+        ax[1].set_title(f'Regression Plot {column} vs PM10')
+        ax[1].set_xlabel(f'{column}')
+        ax[1].set_ylabel('PM10 (µg/m³)')
+        ax[1].grid()
+        st.pyplot(fig)
+        plt.close(fig)
+
+st.header("The correlation between meteorological factors that affects air quality")
+for column in meteorological_factor:
+    st.subheader(f"Correlation between {column} with PM2.5 and PM10")
+    with st.spinner("Loading Plots..."):
+        fig, ax = plt.subplots(1, 2, figsize=(14, 6))
+
+        sns.regplot(x=air_quality[column], y=air_quality['PM2.5'], scatter_kws={'alpha': 0.5}, line_kws={'color': 'magenta'}, ax=ax[0])
+        ax[0].set_title(f'Regression Plot {column} vs PM2.5')
+        ax[0].set_xlabel(f'{column}')
+        ax[0].set_ylabel('PM2.5 (µg/m³)')
+        ax[0].grid()
+        sns.regplot(x=air_quality[column], y=air_quality['PM10'], scatter_kws={'alpha': 0.5}, line_kws={'color': 'magenta'}, ax=ax[1])
+        ax[1].set_title(f'Regression Plot {column} vs PM10')
+        ax[1].set_xlabel(f'{column}')
+        ax[1].set_ylabel('PM10 (µg/m³)')
+        ax[1].grid()
+        st.pyplot(fig)
+        plt.close(fig)
 
 
 
